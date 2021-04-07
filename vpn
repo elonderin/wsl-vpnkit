@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# starts the wsl-vpnkit in a tmux sessions and cleanup beforehand, based on https://github.com/sakai135/wsl-vpnkit/issues/13
+
+echo $BASH_SOURCE
+echo $0
+
+ME=$(readlink -f "$BASH_SOURCE")
+
+if [ ! "$(id -u)" = "0" ]; then
+	echo "Not root, calling self as root..."
+	sudo -E sh -c $ME
+	exit "$?"
+else
+	echo "Running as root..."
+fi
+
+set -x 
+
+
+function kill_vpnkit(){
+	SIG=$2
+	MSG=$1
+	
+	if ps -ef | grep -v grep | grep "bash ./wsl-vpnkit" >/dev/null; then
+		echo $MSG
+		for i in $(ps -ef | grep "bash ./wsl-vpnkit" | grep -v grep | awk '{print $2}'); do kill $SIG $i; done
+	fi
+}
+
+
+kill_vpnkit "Graceful kill of older processes..."
+
+#first graceful kill
+
+if ps -ef | grep -v grep | grep "bash ./wsl-vpnkit" >/dev/null; then
+	echo "Wait 60 sec for graceful death..."
+	sleep 20
+fi
+
+
+kill_vpnkit "Not so graceful kill of older processes..." -9
+
+
+#startup
+echo "Starting up..."
+
+cd ~/bin/wsl-vpnkit
+if [ -f "$ME.out" ]; then
+	mv $ME.out $ME.out.$(date +'%Y%m%d%H%M%S')
+fi
+
+tmux new -s wsl-vpnkit -d "./wsl-vpnkit > ./wsl-vpnkit.out 2>&1"

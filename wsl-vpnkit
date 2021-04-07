@@ -1,4 +1,6 @@
-#! /bin/sh
+#!/usr/bin/env bash
+
+set -x
 
 SOCKET_PATH=/var/run/wsl-vpnkit.sock
 PIPE_PATH="//./pipe/wsl-vpnkit"
@@ -69,7 +71,13 @@ close () {
     "$POWERSHELL_PATH" -Command "Stop-Process -Id $PID_VPNKIT"
     ip link set dev $TAP_NAME down
     ip route add $IP_ROUTE
-    echo "$RESOLV_CONF" > /etc/resolv.conf
+	if [ -f /etc/resolv.conf~ ] ; then 
+		# using a manually copied backup of the config is more stable, 
+		#	eg. when `wsl --shutdown` `close()` will not be executed and then the setting cannot be restored
+		cp /etc/resolv.conf~ /etc/resolv.conf
+	else 
+		echo "$RESOLV_CONF" > /etc/resolv.conf
+	fi 
     kill 0
 }
 
