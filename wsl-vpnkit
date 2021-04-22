@@ -64,6 +64,7 @@ ipconfig () {
     ip route add default via $VPNKIT_GATEWAY_IP dev $TAP_NAME
     RESOLV_CONF=$(cat /etc/resolv.conf)
     echo "nameserver $VPNKIT_GATEWAY_IP" > /etc/resolv.conf
+	chattr +i /etc/resolv.conf  	# see https://github.com/microsoft/WSL/issues/1908#issuecomment-654345369
 
 }
 
@@ -71,6 +72,7 @@ close () {
     "$POWERSHELL_PATH" -Command "Stop-Process -Id $PID_VPNKIT"
     ip link set dev $TAP_NAME down
     ip route add $IP_ROUTE
+	chattr -i /etc/resolv.conf
 	if [ -f /etc/resolv.conf~ ] ; then 
 		# using a manually copied backup of the config is more stable, 
 		#	eg. when `wsl --shutdown` `close()` will not be executed and then the setting cannot be restored
