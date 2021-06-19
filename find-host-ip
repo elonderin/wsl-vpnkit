@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# returns the IPv4 address of the windows host
+# use case: set the DISPLAY env var
+
+# this is the name of the host's network, which is used as an anchor (not sure if there is a better one) to find the host's IP.
+VPNKIT_HOST_DNSSUFFIX="fritz.box"
+
+/mnt/c/Windows/System32/ipconfig.exe  | grep -A4 fritz.box | grep IPv4 | head -n 1 | grep -o -E  "[0-9\.]+" | tail -n 1
